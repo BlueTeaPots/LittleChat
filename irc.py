@@ -37,7 +37,9 @@ class IRC:
         
     def get_response(self):
         response = self.irc.recv(2048).decode("UTF-8")
-        if response == "PING :tmi.twitch.tv":
+        if response == "PING :tmi.twitch.tv\n":
+            print("GOT PING")
             self.irc.send(bytes("PONG :tmi.twitch.tv\n", "UTF-8"))
+            print("SENT PONG")
             respose = ""
         return response
