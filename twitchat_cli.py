@@ -4,7 +4,7 @@ from irc import IRC
 from parser import *
 
 irc = IRC()
-irc.connect("wings95_")
+irc.connect("bajo")
 while True:
     text = irc.get_response()
     if text != "":
