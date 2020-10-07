@@ -1,16 +1,81 @@
 #!/bin/python3
 
+# Imports
 from irc import IRC
 from parser import *
+import curses
 import sys
 
+# Check for correct usage
 if len(sys.argv) < 2:
     print("Correct usage: littletwitch <channel name>")
     exit()
+
+# Pull in user data
 channelName = sys.argv[1].lower()
+
+# Attempting a connection to the twitch IRC
 irc = IRC()
+
+# Try to join the chat for the given channel
 irc.connect(channelName)
-while True:
-    text = irc.get_response()
-    if text != "":
-        print(parseBuffer(text), end = '')
+
+
+# Setting up the curses library
+# Getting the standard screen
+stdScr = curses.initscr()
+# Stopping typed characters from appearing
+curses.noecho()
+# Allow ncurses to react to inputs instantly
+curses.cbreak()
+# Tell ncurses to manage escaped keys
+stdScr.keypad(True)
+# Turn off the cursor
+curses.curs_set(0)
+
+"""
+The display works by first creating a pad that will hold our
+newest messages. This pad's width will match that of the
+terminal, and it's height will be the amount of scrollback
+we have access to. To re-adjust the content when the size
+of the terminal changes, we will keep a number of previous
+messages equal to the height of the content pad. This way
+we can re-draw the pad with the new width. (This re-draw
+functionality has not been added yet)
+"""
+# The main screen is stdScr and is defined above
+
+# The content pad
+padHeight = 100 # Also the scrollback
+padWidth = curses.COLS
+msgPad = curses.newpad(padHeight, padWidth)
+msgPad.scrollok(1)
+
+# The saved messages for re-drawing if the size changes
+# The most recent element will be msgBuffer[padHeight]
+msgBuffer = [""] * padHeight
+
+# The working loop
+stdScr.clear()
+terminate = False
+while not terminate:
+    ircBuffer = irc.get_response()
+    newMsgList = parseBuffer(ircBuffer)
+    for msg in newMsgList:
+        msgBuffer.pop(0)
+        msgBuffer.append(msg)
+        msgPad.scroll(1)
+        msgPad.move(padHeight - 1, 0)
+        msgPad.addstr(msg)
+    msgPad.refresh(padHeight - curses.LINES, 0,\
+                   0, 0,\
+                   curses.LINES - 1, curses.COLS - 1)
+
+# Revert the curses setup so the terminal functions normally
+curses.nocbreak()
+curses.keypad(False)
+curses.echo()
+curses.curs_set(1)
+
+# Close the curses windows
+curses.endwin()
