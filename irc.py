@@ -36,11 +36,7 @@ class IRC:
         print("Sent channel join")
         
     def get_response(self):
-        try:
-            response = self.irc.recv(2048).decode("UTF-8")
-        except:
-            self.connect()
-            response = self.irc.recv(2048).decode("UTF-8")
+        response = self.irc.recv(2048).decode("UTF-8")
         if response == "PING :tmi.twitch.tv\n":
             print("GOT PING")
             self.irc.send(bytes("PONG :tmi.twitch.tv\n", "UTF-8"))
