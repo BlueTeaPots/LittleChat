@@ -2,9 +2,14 @@
 
 from irc import IRC
 from parser import *
+import sys
 
+if len(sys.argv) < 2:
+    print("Correct usage: littletwitch <channel name>")
+    exit()
+channelName = sys.argv[1].lower()
 irc = IRC()
-irc.connect("pokimane")
+irc.connect(channelName)
 while True:
     text = irc.get_response()
     if text != "":
