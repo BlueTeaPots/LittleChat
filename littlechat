@@ -30,9 +30,13 @@ curses.noecho()
 curses.cbreak()
 # Tell ncurses to manage escaped keys
 stdScr.keypad(True)
+stdScr.nodelay(True)
 # Turn off the cursor
 curses.curs_set(0)
-
+# Set the curses colors
+curses.start_color()
+curses.use_default_colors()
+curses.init_pair(1, curses.COLOR_CYAN, -1)
 """
 The display works by first creating a pad that will hold our
 newest messages. This pad's width will match that of the
@@ -43,6 +47,7 @@ messages equal to the height of the content pad. This way
 we can re-draw the pad with the new width. (This re-draw
 functionality has not been added yet)
 """
+
 # The main screen is stdScr and is defined above
 
 # The content pad
@@ -50,7 +55,6 @@ padHeight = 100 # Also the scrollback
 padWidth = curses.COLS
 msgPad = curses.newpad(padHeight, padWidth)
 msgPad.scrollok(1)
-
 # The saved messages for re-drawing if the size changes
 # The most recent element will be msgBuffer[padHeight]
 msgBuffer = [""] * padHeight
@@ -66,14 +70,21 @@ while not terminate:
         msgBuffer.append(msg)
         msgPad.scroll(1)
         msgPad.move(padHeight - 1, 0)
-        msgPad.addstr(msg)
+        msgPad.addstr(msg[0], curses.color_pair(1) | curses.A_BOLD)
+        msgPad.addstr(msg[1])
     msgPad.refresh(padHeight - curses.LINES, 0,\
                    0, 0,\
                    curses.LINES - 1, curses.COLS - 1)
-
+    try:
+        inputKey = stdScr.getkey()
+        if inputKey == 'q':
+            terminate = True
+    except:
+        terminate = False
+        
 # Revert the curses setup so the terminal functions normally
 curses.nocbreak()
-curses.keypad(False)
+stdScr.keypad(False)
 curses.echo()
 curses.curs_set(1)
 
